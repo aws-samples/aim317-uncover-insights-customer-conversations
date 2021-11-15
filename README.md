@@ -10,16 +10,16 @@ This code sample is part of the re:Invent 2021 workshop and is designed to guide
 
 We will first deep dive into the solution to understand what the building blocks are and how you can tie these together. The various notebooks you will run are as shown in the following image.
 
-![SageMaker notebook architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/aim317-sm-arch-full.jpg)
+[SageMaker notebook architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/aim317-sm-arch-full.jpg)
 
-For a full list of instructions to running these notebooks, please refer to the ![AIM317 Workshop Instructions](https://catalog.us-east-1.prod.workshops.aws/v2/workshops/1e224d5a-4273-444a-acec-28d44a5bfb28/en-US)
+For a full list of instructions to running these notebooks, please refer to the [AIM317 Workshop Instructions](https://catalog.us-east-1.prod.workshops.aws/v2/workshops/1e224d5a-4273-444a-acec-28d44a5bfb28/en-US)
 
 
 ## Phase 2 - Full Deployment - Operationalized Solution
 
 The solution that will be deployed is shown in the following image.
 
-![Solution Architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/AIM317%20Diagram%20-%20A1.png)
+[Solution Architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/AIM317%20Diagram%20-%20A1.png)
 
 Use the following AWS CloudFormation template to launch the operational version of the solution.
 
