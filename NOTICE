@@ -1,0 +1,23 @@
+aim317-uncover-insights-customer-conversations
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. 
+
+This project uses training data created from content on Wikipedia licensed under CC-BY-SA-3.0.
+# https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License
+# notebooks/2-Train-Detect-Entities/train.csv
+* https://en.wikipedia.org/wiki/Robot_series
+* https://en.wikipedia.org/wiki/I,_Robot
+* https://en.wikipedia.org/wiki/The_Complete_Robot
+* https://en.wikipedia.org/wiki/The_Bicentennial_Man
+* https://en.wikipedia.org/wiki/The_Positronic_Man
+* https://en.wikipedia.org/wiki/Mother_Earth_(novella)
+* https://en.wikipedia.org/wiki/The_Naked_Sun
+* https://en.wikipedia.org/wiki/Robots_and_Empire
+* https://en.wikipedia.org/wiki/Robotics
+* https://en.wikipedia.org/wiki/Gait_training
+* https://en.wikipedia.org/wiki/Inverse_kinematics
+* https://en.wikipedia.org/wiki/Ethics_of_artificial_intelligence
+* https://en.wikipedia.org/wiki/Three_Laws_of_Robotics
+* https://en.wikipedia.org/wiki/Positronic_brain
+* https://en.wikipedia.org/wiki/Neural_pathway
+* https://en.wikipedia.org/wiki/Brain%E2%80%93computer_interface
+* https://en.wikipedia.org/wiki/Robot_locomotion
