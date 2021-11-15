@@ -1,0 +1,13 @@
+es,en
+Buenas noches, Good evening
+este es Easytron, this is Easytron
+necesitado, in need
+bots de Trantor, Trantor robots
+chocolate para mi hijo, choclate milkshake
+tres leyes de la robótica, three laws of robotics
+tres leyes, three laws
+noches, evening
+licuado, milkshake
+bots, robots
+robo, robot
+bot, robot   

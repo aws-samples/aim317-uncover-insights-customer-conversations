@@ -1,0 +1,340 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  ESVocabularyName:
+    Type: String
+    Default: "Add Vocabulary Name"
+  ENVocabularyName: 
+    Type: String
+    Default: "Add Vocabulary Name"
+Resources:
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "comprehend.amazonaws.com"
+                - "lambda.amazonaws.com"
+                - "translate.amazonaws.com"
+                - "s3.amazonaws.com"
+            Action: 
+            - "sts:AssumeRole"
+      RoleName: "AIM317ServiceRole"
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/TranslateFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonTranscribeFullAccess
+        - arn:aws:iam::aws:policy/ComprehendFullAccess
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+
+  PassthroughPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: "AIM317PassthroughPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: Allow
+            Action: 
+              - 'iam:PassRole'
+            Resource: '*'
+      Roles:
+          - !Ref ServiceRole
+
+  StartTranscription: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/startTranscriptionJob.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317startTranscription"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          outputBucket : !Sub 'aim317-${AWS::AccountId}'
+          outputKey : "transcriptOutput/"
+          ESVocabularyName : !Ref ESVocabularyName
+          ENVocabularyName : !Ref ENVocabularyName
+  
+  StartTranscriptionPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt StartTranscription.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+  
+  CreateVocabulary: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/createVocabulary.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317createVocavulary"
+      Role: !GetAtt ServiceRole.Arn
+  
+  CreateVocabularyPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CreateVocabulary.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  ImportTerminology: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/importTerminology.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317importTerminology"
+      Role: !GetAtt ServiceRole.Arn
+  
+  ImportTerminolofyPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ImportTerminology.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  TranslateText: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/translateText.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317translateText"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          outputBucket : !Sub 'aim317-${AWS::AccountId}'
+          outputKey : "translateOutput/"
+          TranslateARN : !GetAtt ServiceRole.Arn
+  
+  TranslateTextPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt TranslateText.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  CreateEntityRecognizer: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/createEntityRecognizer.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317createEntityRecognizer"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          ComprehendARN : !GetAtt ServiceRole.Arn
+          ComprehendAnnotationBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendTargetBucket : !Sub 'aim317-${AWS::AccountId}'
+  
+  CreateEntityRecognizerPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CreateEntityRecognizer.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  CreateEndpoint: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/createEndpoint.zip"
+      Description: "Lambda that creates an endpoint for inference"
+      Runtime: python3.8
+      FunctionName: "AIM317createEndpoint"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  CreateEndpointPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CreateEndpoint.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  DetectEntities: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/detectEntities.zip"
+      Runtime: python3.8
+      Layers:
+        - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
+      FunctionName: "AIM317detectEntities"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          entityDetectionBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  DetectEntitiesPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt DetectEntities.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  BuildTrainTest: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/paginateProcessDataTrainTestFiles.zip"
+      Runtime: python3.8
+      Layers:
+        - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
+      FunctionName: "AIM317buildTrainTest"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          entityDetectionBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  BuildTrainTestPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt BuildTrainTest.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  CreateDocumentClassifier: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/createDocumentClassifier.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317createDocumentClassifier"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          classifierBucket : !Sub 'aim317-${AWS::AccountId}'
+          classifierBucketPrefix : "comprehend-custom-classifier"
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  CreateDocumentClassifierPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CreateDocumentClassifier.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  ClassifyDocument: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/classifyDocument.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317classifyDocument"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          classifierBucketPrefix : "quicksight/data/cta"
+          classifierBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  ClassifyDocumentPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ClassifyDocument.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  DetectSentiment: 
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Code: 
+        S3Bucket: "aim317-template-bucket-630069423783"
+        S3Key: "public/labs/aim317/code/startSentimentDetection.zip"
+      Runtime: python3.8
+      FunctionName: "AIM317detectSentiment"
+      Role: !GetAtt ServiceRole.Arn
+      Environment:
+        Variables:
+          ComprehendTargetBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendARN : !GetAtt ServiceRole.Arn
+  
+  DetectSentimentPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt DetectSentiment.Arn
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
+
+  AIM317Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'aim317-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules: 
+                  - Name: prefix
+                    Value: "transcribeInput/"
+            Function: !GetAtt StartTranscription.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules: 
+                  - Name: prefix
+                    Value: "vocabularyInput/"
+            Function: !GetAtt CreateVocabulary.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules: 
+                  - Name: prefix
+                    Value: "terminologyInput/"
+            Function: !GetAtt ImportTerminology.Arn
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules: 
+                  - Name: prefix
+                    Value: "translateInput/"
+            Function: !GetAtt TranslateText.Arn

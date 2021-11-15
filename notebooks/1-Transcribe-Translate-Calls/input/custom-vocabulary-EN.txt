@@ -1,0 +1,16 @@
+Phrase	IPA	SoundsLike	DisplayAs
+cyberpunk			CyberPunk
+easy-drawn			EasyTron
+emotional-intelligence			Emotional Intelligence
+galactic-empire			Galactic Empire
+is-it-ron			EasyTron
+kinematics			Kinematics
+nightfall			Nightfall
+positronic-brain			Positronic Brain
+psychohistory			Psychohistory
+robot			Robot
+robot-ethics			Robot Ethics
+three-laws			Three Laws
+transistor			Trantor
+trent-or			Trantor
+worship			version
