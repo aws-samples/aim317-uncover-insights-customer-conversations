@@ -1,18 +1,18 @@
 import boto3
 import os
 import pandas as pd
+import awswrangler as wr
 
 def lambda_handler(event, context):
 
     s3 = boto3.client('s3')
     s3_resource = boto3.resource('s3')
-
     comprehend = boto3.client('comprehend')
 
     t_prefix = 'quicksight/data/entity'
 
     paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=os.environ['entityDetectionBucket'], Prefix='comprehend/input')
+    pages = paginator.paginate(Bucket=os.environ['entityDetectionBucket'], Prefix='comprehendInput/')
 
     tempcols = ['Type', 'Score']
     df_temp = pd.DataFrame(columns=tempcols)
@@ -22,15 +22,13 @@ def lambda_handler(event, context):
 
     comprehendEndpoint = comprehend.list_endpoints(
         Filter={
-            'ModelArn': 'arn:aws:comprehend:us-east-1:525612672949:entity-recognizer-endpoint/aim317-entity-recognizer-760259c4',
             'Status': 'IN_SERVICE',
         }
     )
 
     for page in pages:
         for obj in page['Contents']:
-            entity = ''
-            transcript_file_name = obj['Key'].split('/')[2]
+            transcript_file_name = obj['Key'].split('/')[1]
             temp = s3_resource.Object(os.environ['entityDetectionBucket'], obj['Key'])
             transcript_content = temp.get()['Body'].read().decode('utf-8')
             transcript_truncated = transcript_content[500:1800]
@@ -43,9 +41,7 @@ def lambda_handler(event, context):
             else:
                 entity = 'No entities'
             
-            df_ent.loc[len(df_ent.index)] = [transcript_file_name.strip('en-').strip('.txt'),entity]        
+            df_ent.loc[len(df_ent.index)] = [transcript_file_name.strip('en-'),entity]        
 
-    df_ent.to_csv('s3://' + os.environ['entityDetectionBucket'] + '/' + t_prefix + '/' + 'entities.csv', index=False)
-    df_ent
-
-    return['EntityRecognizerProperties']['EntityRecognizerArn']
+    wr.s3.to_csv(df_ent, path='s3://' + os.environ['entityDetectionBucket'] + '/' + t_prefix + '/' + 'entities.csv')
+    ##df_ent.to_csv('s3://' + os.environ['entityDetectionBucket'] + '/' + t_prefix + '/' + 'entities.csv', index=False)

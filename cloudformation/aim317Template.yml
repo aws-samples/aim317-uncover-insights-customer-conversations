@@ -41,19 +41,22 @@ Resources:
           - Effect: Allow
             Action: 
               - 'iam:PassRole'
-            Resource: '*'
+            Resource: !GetAtt ServiceRole.Arn
       Roles:
           - !Ref ServiceRole
 
-  StartTranscription: 
+  StartTranscriptionJob: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Description: "Triggers on raw audio files added to S3 location and performs transcription"
+      Handler: startTranscriptionJob.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/startTranscriptionJob.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/startTranscriptionJob.zip"
       Runtime: python3.8
-      FunctionName: "AIM317startTranscription"
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      FunctionName: "AIM317startTranscriptionJob"
       Role: !GetAtt ServiceRole.Arn
       Environment:
         Variables:
@@ -62,22 +65,23 @@ Resources:
           ESVocabularyName : !Ref ESVocabularyName
           ENVocabularyName : !Ref ENVocabularyName
   
-  StartTranscriptionPermission:
+  StartTranscriptionJobPermission:
     Type: AWS::Lambda::Permission
     Properties: 
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt StartTranscription.Arn
+      FunctionName: !GetAtt StartTranscriptionJob.Arn
       Principal: s3.amazonaws.com
       SourceArn: !Sub 'arn:aws:s3:::aim317-${AWS::AccountId}'
   
   CreateVocabulary: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: createVocabulary.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/createVocabulary.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/createVocabulary.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317createVocavulary"
       Role: !GetAtt ServiceRole.Arn
   
@@ -92,11 +96,12 @@ Resources:
   ImportTerminology: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: importTerminology.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/importTerminology.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/importTerminology.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317importTerminology"
       Role: !GetAtt ServiceRole.Arn
   
@@ -111,11 +116,12 @@ Resources:
   TranslateText: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: translateText.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/translateText.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/translateText.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317translateText"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -135,11 +141,12 @@ Resources:
   CreateEntityRecognizer: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: createEntityRecognizer.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/createEntityRecognizer.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/createEntityRecognizer.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317createEntityRecognizer"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -159,12 +166,13 @@ Resources:
   CreateEndpoint: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: createEndpoint.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/createEndpoint.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/createEndpoint.zip"
       Description: "Lambda that creates an endpoint for inference"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317createEndpoint"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -182,11 +190,12 @@ Resources:
   DetectEntities: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: detectEntities.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/detectEntities.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/detectEntities.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       Layers:
         - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
       FunctionName: "AIM317detectEntities"
@@ -207,18 +216,19 @@ Resources:
   BuildTrainTest: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: paginateProcessDataTrainTestFiles.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/paginateProcessDataTrainTestFiles.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/paginateProcessDataTrainTestFiles.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       Layers:
         - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
       FunctionName: "AIM317buildTrainTest"
       Role: !GetAtt ServiceRole.Arn
       Environment:
         Variables:
-          entityDetectionBucket : !Sub 'aim317-${AWS::AccountId}'
+          comprehendBucket : !Sub 'aim317-${AWS::AccountId}'
           ComprehendARN : !GetAtt ServiceRole.Arn
   
   BuildTrainTestPermission:
@@ -232,11 +242,12 @@ Resources:
   CreateDocumentClassifier: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: createDocumentClassifier.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/createDocumentClassifier.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/createDocumentClassifier.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317createDocumentClassifier"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -256,11 +267,12 @@ Resources:
   ClassifyDocument: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: classifyDocument.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/classifyDocument.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/classifyDocument.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317classifyDocument"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -280,11 +292,12 @@ Resources:
   DetectSentiment: 
     Type: AWS::Lambda::Function
     Properties:
-      Handler: index.lambda_handler
+      Handler: startSentimentDetection.lambda_handler
       Code: 
-        S3Bucket: "aim317-template-bucket-630069423783"
-        S3Key: "public/labs/aim317/code/startSentimentDetection.zip"
+        S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
+        S3Key: "src/startSentimentDetection.zip"
       Runtime: python3.8
+      ReservedConcurrentExecutions: 1
       FunctionName: "AIM317detectSentiment"
       Role: !GetAtt ServiceRole.Arn
       Environment:
@@ -305,9 +318,17 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
+      AccessControl: Private
       BucketName: !Sub 'aim317-${AWS::AccountId}'
+      LoggingConfiguration: 
+        LogFilePrefix: access-logs
       VersioningConfiguration:
         Status: Enabled
+      PublicAccessBlockConfiguration: 
+          BlockPublicAcls: true
+          BlockPublicPolicy: false
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
@@ -316,7 +337,7 @@ Resources:
                 Rules: 
                   - Name: prefix
                     Value: "transcribeInput/"
-            Function: !GetAtt StartTranscription.Arn
+            Function: !GetAtt StartTranscriptionJob.Arn
           - Event: s3:ObjectCreated:*
             Filter:
               S3Key:

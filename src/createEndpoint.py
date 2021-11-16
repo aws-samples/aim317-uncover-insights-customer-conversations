@@ -8,7 +8,7 @@ def lambda_handler(event, context):
 
     client = boto3.client('comprehend')
 
-    requestParams = event['queryStringParameters']['endpointType']
+    requestParams = event['endpointType']
     
     if requestParams == "EntityRecognizer":
         endpointName = "aim317-entity-recognizer" + '-' + str(uuid.uuid4())[:8]
