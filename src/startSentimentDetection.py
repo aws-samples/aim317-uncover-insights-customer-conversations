@@ -1,34 +1,33 @@
+import awswrangler as wr
+import pandas as pd
 import boto3
-import uuid
 import os
 
 def lambda_handler(event, context):
 
-    record = event['Records'][0]
-       
-    s3bucket = record['s3']['bucket']['name']
-    s3object = record['s3']['object']['key']
-    
-    s3Path = "s3://" + s3bucket + "/" + s3object
-    jobName = s3object.replace("/","_") + '-' + str(uuid.uuid4())
-
     client = boto3.client('comprehend')
 
-    ## Start Sentiment Detection Job
-    response = client.start_sentiment_detection_job(
-    
-    InputDataConfig={
-        'S3Uri': s3Path,
-        'InputFormat': 'ONE_DOC_PER_FILE',
-        'DocumentReaderConfig': {
-            'DocumentReadAction': 'TEXTRACT_ANALYZE_DOCUMENT',
-        }
-    },
-    OutputDataConfig={
-        'S3Uri': os.environ['ComprehendTargetBucket']
-    },
-    DataAccessRoleArn=os.environ['ComprehendARN'],
-    JobName=jobName,
-    LanguageCode='en'
-    
-    )
+    inprefix = 'comprehendInput'
+    outprefix = 'quicksight/temp/insights'
+
+    comprehend = boto3.client('comprehend')
+    s3 = boto3.client('s3')
+    s3_resource = boto3.resource('s3')
+
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=os.environ['ComprehendBucket'], Prefix=inprefix)
+    job_name_list = []
+    t_prefix = 'quicksight/data/sentiment'
+
+    cols = ['transcript_name', 'sentiment']
+    df_sent = pd.DataFrame(columns=cols)
+
+    for page in pages:
+        for obj in page['Contents']:
+            transcript_file_name = obj['Key'].split('/')[1]
+            temp = s3_resource.Object(os.environ['ComprehendBucket'], obj['Key'])
+            transcript_contents = temp.get()['Body'].read().decode('utf-8')
+            response = comprehend.detect_sentiment(Text=transcript_contents, LanguageCode='en')
+            df_sent.loc[len(df_sent.index)] = [transcript_file_name.strip('en-').strip('.txt'),response['Sentiment']]
+            
+    wr.s3.to_csv(df_sent, path='s3://' + os.environ['ComprehendBucket'] + '/' + t_prefix + '/' + 'sentiment.csv')

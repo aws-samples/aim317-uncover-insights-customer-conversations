@@ -18,7 +18,7 @@ def lambda_handler(event, context):
 
     client = boto3.client('transcribe')
 
-    vocabLanguage = s3object.split('-')[3].split('.')[0]
+    vocabLanguage = s3object.split('-')[2].split('.')[0]
     if vocabLanguage == "EN":
         vocabLanguage = 'en-US'
         vocabularyName = os.environ['ENVocabularyName']
