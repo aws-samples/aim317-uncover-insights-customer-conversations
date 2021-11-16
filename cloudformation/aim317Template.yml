@@ -272,6 +272,9 @@ Resources:
         S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
         S3Key: "src/classifyDocument.zip"
       Runtime: python3.8
+      Timeout: 10
+      Layers:
+        - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
       ReservedConcurrentExecutions: 1
       FunctionName: "AIM317classifyDocument"
       Role: !GetAtt ServiceRole.Arn
@@ -297,12 +300,15 @@ Resources:
         S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
         S3Key: "src/startSentimentDetection.zip"
       Runtime: python3.8
+      Timeout: 10
+      Layers:
+        - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
       ReservedConcurrentExecutions: 1
       FunctionName: "AIM317detectSentiment"
       Role: !GetAtt ServiceRole.Arn
       Environment:
         Variables:
-          ComprehendTargetBucket : !Sub 'aim317-${AWS::AccountId}'
+          ComprehendBucket : !Sub 'aim317-${AWS::AccountId}'
           ComprehendARN : !GetAtt ServiceRole.Arn
   
   DetectSentimentPermission:

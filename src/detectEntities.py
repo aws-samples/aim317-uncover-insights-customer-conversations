@@ -26,13 +26,17 @@ def lambda_handler(event, context):
         }
     )
 
+    for item in comprehendEndpoint.get('EndpointPropertiesList'):
+        if 'entity-recognizer-endpoint' in item['EndpointArn']:
+            endpointArn = item['EndpointArn']
+
     for page in pages:
         for obj in page['Contents']:
             transcript_file_name = obj['Key'].split('/')[1]
             temp = s3_resource.Object(os.environ['entityDetectionBucket'], obj['Key'])
             transcript_content = temp.get()['Body'].read().decode('utf-8')
             transcript_truncated = transcript_content[500:1800]
-            response = comprehend.detect_entities(Text=transcript_truncated, LanguageCode='en', EndpointArn=comprehendEndpoint['EndpointPropertiesList'][0]['EndpointArn'])
+            response = comprehend.detect_entities(Text=transcript_truncated, LanguageCode='en', EndpointArn=endpointArn)
             df_temp = pd.DataFrame(columns=tempcols)
             for ent in response['Entities']:
                 df_temp.loc[len(df_temp.index)] = [ent['Type'],ent['Score']]
@@ -44,4 +48,3 @@ def lambda_handler(event, context):
             df_ent.loc[len(df_ent.index)] = [transcript_file_name.strip('en-'),entity]        
 
     wr.s3.to_csv(df_ent, path='s3://' + os.environ['entityDetectionBucket'] + '/' + t_prefix + '/' + 'entities.csv')
-    ##df_ent.to_csv('s3://' + os.environ['entityDetectionBucket'] + '/' + t_prefix + '/' + 'entities.csv', index=False)
