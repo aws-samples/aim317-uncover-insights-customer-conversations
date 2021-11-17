@@ -195,6 +195,7 @@ Resources:
         S3Bucket: !Sub 'aim317-code-${AWS::AccountId}'
         S3Key: "src/detectEntities.zip"
       Runtime: python3.8
+      Timeout: 10
       ReservedConcurrentExecutions: 1
       Layers:
         - "arn:aws:lambda:us-east-1:336392948345:layer:AWSDataWrangler-Python38:1"
@@ -363,5 +364,5 @@ Resources:
               S3Key:
                 Rules: 
                   - Name: prefix
-                    Value: "translateInput/"
+                    Value: "transcriptOutput/"
             Function: !GetAtt TranslateText.Arn
