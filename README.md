@@ -12,7 +12,7 @@ We will first deep dive into the solution to understand what the building blocks
 
 ![SageMaker notebook architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/aim317-sm-arch-full.jpg)
 
-**For a full list of instructions to running these notebooks**, please refer to the [AIM317 Workshop Instructions](https://studio.us-east-1.prod.workshops.aws/preview/076e45e5-760d-41cf-bd22-a86c46ee462c/builds/83c4ddb7-fbc6-4e72-b5da-967f8fe7cfcb/en-US)
+**For a full list of instructions to running these notebooks**, please refer to the [AIM317 Workshop Instructions](https://catalog.us-east-1.prod.workshops.aws/v2/workshops/076e45e5-760d-41cf-bd22-a86c46ee462c/en-US/)
 
 
 ## Phase 2 - Full Deployment - Operationalized Solution
@@ -21,7 +21,7 @@ The solution that will be deployed is shown in the following image.
 
 ![Solution Architecture](https://github.com/aws-samples/aim317-uncover-insights-customer-conversations/blob/main/static/AIM317%20Diagram%20-%20A1.png)
 
-Use the following AWS CloudFormation template to deploy the operational version of the solution. **For deploy instructions please refer to** 6-Deploy in [AIM317 Workshop Instructions](https://studio.us-east-1.prod.workshops.aws/preview/076e45e5-760d-41cf-bd22-a86c46ee462c/builds/83c4ddb7-fbc6-4e72-b5da-967f8fe7cfcb/en-US)   
+Use the following AWS CloudFormation template to deploy the operational version of the solution. **For deploy instructions please refer to** 6-Deploy in [AIM317 Workshop Instructions](https://catalog.us-east-1.prod.workshops.aws/v2/workshops/076e45e5-760d-41cf-bd22-a86c46ee462c/en-US/)   
 
 [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?templateUrl=https://ai-ml-services-lab.s3.amazonaws.com/public/labs/aim317/cloudformation/aim317Template.yml&param_SubnetID=subnet-00001)
 
